@@ -1,0 +1,30 @@
+{
+  "name": "ndnn",
+  "version": "1.0.0",
+  "description": "Content management platform with personalization widgets",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest --runInBand --verbose"
+  },
+  "dependencies": {
+    "express": "4.18.2",
+    "better-sqlite3": "9.6.0",
+    "uuid": "9.0.0",
+    "cookie-parser": "1.4.6"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.21",
+    "@types/better-sqlite3": "7.6.8",
+    "@types/node": "20.11.5",
+    "@types/uuid": "9.0.7",
+    "@types/cookie-parser": "1.4.6",
+    "supertest": "6.3.4",
+    "typescript": "5.3.3",
+    "jest": "29.7.0",
+    "@types/jest": "29.5.11",
+    "ts-jest": "29.1.2",
+    "@types/supertest": "6.0.2"
+  }
+}
