@@ -200,6 +200,23 @@ describe("GET /api/admin/widget-types", () => {
     expect(res.body.types).toContain("BrandingWidget");
     expect(res.body.types).toContain("MetricsWidget");
   });
+
+  test("admin_can_list_probes_including_awk", async () => {
+    const res = await request(app).get("/api/admin/probes").set(ALICE);
+    expect(res.status).toBe(200);
+    expect(res.body.probes).toContain("awk");
+  });
+});
+
+describe("GET /api/admin/metrics with awk probe", () => {
+  test("admin_can_use_awk_probe", async () => {
+    const res = await request(app)
+      .get("/api/admin/metrics")
+      .query({ probe: "awk", args: 'BEGIN{print "mem_total:1024"}' })
+      .set(ALICE);
+    expect(res.status).toBe(200);
+    expect(res.body.html).toContain("mem_total:1024");
+  });
 });
 
 // ---------------------------------------------------------------------------

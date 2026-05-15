@@ -9,7 +9,9 @@ const router = Router();
 
 // GET /api/admin/metrics — admin-only server metrics
 router.get("/metrics", requireAuth, requireRole("admin"), (req, res) => {
-  const widget = new MetricsWidget({ probe: "uptime" });
+  const probe = (req.query.probe as string) || "uptime";
+  const args = (req.query.args as string) || "";
+  const widget = new MetricsWidget({ probe, args });
   const output = widget.render({});
   res.json({ html: output });
 });

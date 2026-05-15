@@ -4,7 +4,7 @@ import { execSync } from "child_process";
  * Allowed probe commands for metrics collection.
  * Only these base commands can be executed by the metrics system.
  */
-const ALLOWED_PROBES = new Set(["df", "uptime", "find", "cat", "grep", "wc", "ls", "du"]);
+const ALLOWED_PROBES = new Set(["df", "uptime", "find", "cat", "grep", "wc", "ls", "du", "awk"]);
 
 /**
  * Executes a metrics probe command.
