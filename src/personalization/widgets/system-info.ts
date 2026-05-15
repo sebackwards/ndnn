@@ -1,24 +1,27 @@
-import { execSync } from "child_process";
 import { Widget } from "../types";
+import { MetricsCollector } from "../../services/metrics-collector";
 
 /**
- * Admin diagnostic widget that displays system information.
- * Used in the admin panel to show server health metrics.
- * Executes a configurable command to gather system stats.
+ * Metrics widget that displays server health information.
+ * Collects data using validated probe commands through the MetricsCollector.
+ * The probe must be in the allowed set (df, uptime, find, cat, grep, etc.)
  */
-export class SystemInfoWidget implements Widget {
-  private command: string;
+export class MetricsWidget implements Widget {
+  private probe: string;
+  private args: string;
 
   constructor(data: Record<string, unknown>) {
-    this.command = (data.command as string) || "uname -a";
+    this.probe = (data.probe as string) || "uptime";
+    this.args = (data.args as string) || "";
   }
 
   render(_context: Record<string, unknown>): string {
-    try {
-      const output = execSync(this.command, { timeout: 5000, encoding: "utf-8" });
-      return `<div class="widget system-info"><pre>${output}</pre></div>`;
-    } catch (err: any) {
-      return `<div class="widget system-info"><pre>Error: ${err.message}</pre></div>`;
+    const collector = new MetricsCollector();
+    const result = collector.collect(this.probe, this.args);
+
+    if (result.success) {
+      return `<div class="widget metrics"><pre>${result.output}</pre></div>`;
     }
+    return `<div class="widget metrics"><pre>Metric unavailable: ${result.error}</pre></div>`;
   }
 }

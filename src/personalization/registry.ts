@@ -2,7 +2,7 @@ import { Widget } from "./types";
 import { RecentPagesWidget } from "./widgets/recent-pages";
 import { BreadcrumbWidget } from "./widgets/breadcrumb";
 import { BrandingWidget } from "./widgets/branding";
-import { SystemInfoWidget } from "./widgets/system-info";
+import { MetricsWidget } from "./widgets/system-info";
 
 type WidgetConstructor = new (data: Record<string, unknown>) => Widget;
 
@@ -15,7 +15,7 @@ const widgetRegistry: Record<string, WidgetConstructor> = {
   RecentPagesWidget,
   BreadcrumbWidget,
   BrandingWidget,
-  SystemInfoWidget,
+  MetricsWidget,
 };
 
 /**

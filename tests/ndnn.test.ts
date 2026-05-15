@@ -180,14 +180,14 @@ describe("GET /api/admin/users", () => {
 });
 
 describe("GET /api/admin/system-info", () => {
-  test("admin_can_view_system_info", async () => {
-    const res = await request(app).get("/api/admin/system-info").set(ALICE);
+  test("admin_can_view_metrics", async () => {
+    const res = await request(app).get("/api/admin/metrics").set(ALICE);
     expect(res.status).toBe(200);
-    expect(res.body.html).toContain("system-info");
+    expect(res.body.html).toContain("metrics");
   });
 
-  test("editor_cannot_view_system_info", async () => {
-    const res = await request(app).get("/api/admin/system-info").set(CAROL);
+  test("editor_cannot_view_metrics", async () => {
+    const res = await request(app).get("/api/admin/metrics").set(CAROL);
     expect(res.status).toBe(403);
   });
 });
@@ -198,7 +198,7 @@ describe("GET /api/admin/widget-types", () => {
     expect(res.status).toBe(200);
     expect(res.body.types).toContain("RecentPagesWidget");
     expect(res.body.types).toContain("BrandingWidget");
-    expect(res.body.types).toContain("SystemInfoWidget");
+    expect(res.body.types).toContain("MetricsWidget");
   });
 });
 

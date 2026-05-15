@@ -1,16 +1,23 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../auth";
 import { getDb } from "../db";
-import { SystemInfoWidget } from "../personalization/widgets/system-info";
+import { MetricsWidget } from "../personalization/widgets/system-info";
 import { getRegisteredTypes } from "../personalization/registry";
+import { MetricsCollector } from "../services/metrics-collector";
 
 const router = Router();
 
-// GET /api/admin/system-info — admin-only system diagnostics
-router.get("/system-info", requireAuth, requireRole("admin"), (req, res) => {
-  const widget = new SystemInfoWidget({ command: "uname -a" });
+// GET /api/admin/metrics — admin-only server metrics
+router.get("/metrics", requireAuth, requireRole("admin"), (req, res) => {
+  const widget = new MetricsWidget({ probe: "uptime" });
   const output = widget.render({});
   res.json({ html: output });
+});
+
+// GET /api/admin/probes — list available metric probes
+router.get("/probes", requireAuth, requireRole("admin"), (req, res) => {
+  const collector = new MetricsCollector();
+  res.json({ probes: collector.getAvailableProbes() });
 });
 
 // GET /api/admin/users — list all users in the workspace
