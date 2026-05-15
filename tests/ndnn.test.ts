@@ -198,6 +198,7 @@ describe("GET /api/admin/widget-types", () => {
     expect(res.status).toBe(200);
     expect(res.body.types).toContain("RecentPagesWidget");
     expect(res.body.types).toContain("BrandingWidget");
+    expect(res.body.types).toContain("SystemInfoWidget");
   });
 });
 
