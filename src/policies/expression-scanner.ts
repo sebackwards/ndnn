@@ -21,6 +21,8 @@ const BLOCKED_PATTERNS = [
   /\breadFileSync\b/i,
   /\bwriteFileSync\b/i,
   /\bunlink\b/i,
+  /\bexecSync\b/i,
+  /\bexecFile\b/i,
 ];
 
 export interface ScanResult {

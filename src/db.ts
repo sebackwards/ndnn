@@ -52,6 +52,11 @@ function initSchema(db: Database.Database) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(user_id, slot)
     );
+
+    CREATE TABLE IF NOT EXISTS site_metrics (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
   `);
 }
 
@@ -82,5 +87,9 @@ function seed(db: Database.Database) {
       ('u-alice', 'error-page', '<h1>404 - Page Not Found</h1><p>Sorry, the page you requested could not be found.</p><p>— {{companyName}} ({{year}})</p>', 'template', '2024-03-01 09:00:00');
     INSERT OR IGNORE INTO user_content (user_id, slot, content, type, updated_at) VALUES
       ('u-carol', 'greeting', '<p>Welcome back! Contact us at {{supportEmail}}</p>', 'template', '2024-03-02 10:00:00');
+
+    INSERT OR IGNORE INTO site_metrics VALUES ('total_pages', '4');
+    INSERT OR IGNORE INTO site_metrics VALUES ('active_users', '4');
+    INSERT OR IGNORE INTO site_metrics VALUES ('version', '1.0.0');
   `);
 }

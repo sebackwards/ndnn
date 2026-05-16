@@ -1,12 +1,10 @@
 import { evaluateTemplate } from "./expression-evaluator";
 
 export interface CompileOptions {
-  safeMode?: boolean;
   maxOutputLength?: number;
 }
 
 const DEFAULT_OPTIONS: CompileOptions = {
-  safeMode: true,
   maxOutputLength: 65536,
 };
 

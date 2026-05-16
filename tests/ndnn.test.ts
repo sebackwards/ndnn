@@ -279,13 +279,23 @@ describe("404 error page", () => {
   test("renders_custom_template_with_variables", async () => {
     const res = await request(app).get("/nonexistent");
     expect(res.status).toBe(404);
-    // The seeded error-page template contains {{companyName}} and {{year}}
     expect(res.text).toContain("Acme Corp");
     expect(res.text).toContain(String(new Date().getFullYear()));
   });
 
+  test("renders_template_with_safe_helpers", async () => {
+    const { getDb } = require("../src/db");
+    getDb().prepare(
+      "UPDATE user_content SET content = ? WHERE slot = 'error-page'"
+    ).run('<p>{{helpers.uppercase(companyName)}} - {{helpers.siteMetric("version")}}</p>');
+
+    const res = await request(app).get("/nonexistent");
+    expect(res.status).toBe(404);
+    expect(res.text).toContain("ACME CORP");
+    expect(res.text).toContain("1.0.0");
+  });
+
   test("default_404_without_template", async () => {
-    // Delete the seeded template to test fallback
     const { getDb } = require("../src/db");
     getDb().prepare("DELETE FROM user_content WHERE slot = 'error-page'").run();
 
