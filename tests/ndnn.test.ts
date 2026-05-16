@@ -25,39 +25,21 @@ describe("health", () => {
     expect(res.body.status).toBe("ok");
   });
 
-  test("public_status_returns_uptime", async () => {
-    const res = await request(app).get("/health/status");
+  test("public_visits_counts_path", async () => {
+    const res = await request(app)
+      .get("/health/visits")
+      .query({ path: "/api/pages" });
     expect(res.status).toBe(200);
-    expect(res.body.probe).toBe("uptime");
-    expect(res.body.success).toBe(true);
-    expect(res.body.output).toBeTruthy();
+    expect(res.body.path).toBe("/api/pages");
+    expect(res.body.visits).toBeGreaterThanOrEqual(1);
   });
 
-  test("public_status_accepts_probe_param", async () => {
+  test("public_visits_returns_zero_for_unknown", async () => {
     const res = await request(app)
-      .get("/health/status")
-      .query({ probe: "df", args: "-h" });
+      .get("/health/visits")
+      .query({ path: "/never-visited" });
     expect(res.status).toBe(200);
-    expect(res.body.probe).toBe("df");
-    expect(res.body.success).toBe(true);
-  });
-
-  test("public_status_awk_probe_works", async () => {
-    const res = await request(app)
-      .get("/health/status")
-      .query({ probe: "awk", args: '\'BEGIN{print "disk_usage:42%"}\'' });
-    expect(res.status).toBe(200);
-    expect(res.body.probe).toBe("awk");
-    expect(res.body.success).toBe(true);
-    expect(res.body.output).toContain("disk_usage:42%");
-  });
-
-  test("public_status_rejects_unknown_probe", async () => {
-    const res = await request(app)
-      .get("/health/status")
-      .query({ probe: "rm" });
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(false);
+    expect(res.body.visits).toBe(0);
   });
 });
 
@@ -234,23 +216,6 @@ describe("GET /api/admin/widget-types", () => {
     expect(res.body.types).toContain("RecentPagesWidget");
     expect(res.body.types).toContain("BrandingWidget");
     expect(res.body.types).toContain("MetricsWidget");
-  });
-
-  test("admin_can_list_probes_including_awk", async () => {
-    const res = await request(app).get("/api/admin/probes").set(ALICE);
-    expect(res.status).toBe(200);
-    expect(res.body.probes).toContain("awk");
-  });
-});
-
-describe("GET /api/admin/metrics with awk probe", () => {
-  test("admin_can_use_awk_probe", async () => {
-    const res = await request(app)
-      .get("/api/admin/metrics")
-      .query({ probe: "awk", args: '\'BEGIN{print "mem_total:1024"}\'' })
-      .set(ALICE);
-    expect(res.status).toBe(200);
-    expect(res.body.html).toContain("mem_total:1024");
   });
 });
 
