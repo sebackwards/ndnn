@@ -42,6 +42,16 @@ function initSchema(db: Database.Database) {
       published    INTEGER NOT NULL DEFAULT 0,
       created_at   TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS user_content (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id    TEXT NOT NULL,
+      slot       TEXT NOT NULL,
+      content    TEXT NOT NULL,
+      type       TEXT NOT NULL CHECK(type IN ('template', 'setting')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(user_id, slot)
+    );
   `);
 }
 
@@ -67,5 +77,10 @@ function seed(db: Database.Database) {
       ('pg-003', 'Internal Notes',  'internal-notes',  '<h1>Notes</h1><p>Draft content.</p>', 'ws-alpha', 'u-alice', 0, '2024-03-03 11:00:00');
     INSERT OR IGNORE INTO pages VALUES
       ('pg-004', 'Beta Welcome',    'beta-welcome',    '<h1>Beta</h1><p>Welcome to Beta.</p>', 'ws-beta', 'u-bob', 1, '2024-03-01 08:00:00');
+
+    INSERT OR IGNORE INTO user_content (user_id, slot, content, type, updated_at) VALUES
+      ('u-alice', 'error-page', '<h1>404 - Page Not Found</h1><p>Sorry, the page you requested could not be found.</p><p>— {{companyName}} ({{year}})</p>', 'template', '2024-03-01 09:00:00');
+    INSERT OR IGNORE INTO user_content (user_id, slot, content, type, updated_at) VALUES
+      ('u-carol', 'greeting', '<p>Welcome back! Contact us at {{supportEmail}}</p>', 'template', '2024-03-02 10:00:00');
   `);
 }

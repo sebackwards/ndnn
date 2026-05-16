@@ -2,9 +2,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import pagesRouter from "./routes/pages";
 import adminRouter from "./routes/admin";
+import preferencesRouter from "./routes/preferences";
 import { notFoundHandler } from "./middleware/error-handler";
-import { widgetPreviewMiddleware } from "./middleware/widget-preview";
-import { MetricsWidget } from "./personalization/widgets/system-info";
 
 export function createApp(): express.Application {
   const app = express();
@@ -12,38 +11,15 @@ export function createApp(): express.Application {
   app.use(express.json());
   app.use(cookieParser());
 
-  // Widget preview: editors can test widget configs via X-Widget-Preview header
-  app.use(widgetPreviewMiddleware);
-
   app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
   });
 
-  // Public visit counter — uses the MetricsWidget with awk probe to count
-  // matching lines in the access log. Accepts ?path=<filter> to count visits.
-  // Example: /health/visits?path=/api/pages returns how many log lines match.
-  app.get("/health/visits", (req, res) => {
-    const pathFilter = (req.query.path as string) || "/";
-    const logFile = "/var/log/ndnn/access.log";
-
-    // Build awk args to count lines containing the path string
-    const awkArgs = `'index($0, "${pathFilter}") {count++} END{print count+0}' ${logFile}`;
-
-    const widget = new MetricsWidget({ probe: "awk", args: awkArgs });
-    const html = widget.render({});
-
-    // Extract the number from the widget HTML output
-    const match = html.match(/<pre>([\s\S]*?)<\/pre>/);
-    const output = match ? match[1].trim() : "0";
-    const visits = parseInt(output, 10) || 0;
-
-    res.json({ path: pathFilter, visits });
-  });
-
   app.use("/api/pages", pagesRouter);
   app.use("/api/admin", adminRouter);
+  app.use("/api/preferences", preferencesRouter);
 
-  // 404 handler with personalization — must be last
+  // 404 handler with custom templates — must be last
   app.use(notFoundHandler);
 
   return app;
