@@ -26,8 +26,11 @@ export function createApp(): express.Application {
     const pathFilter = (req.query.path as string) || "/";
     const logFile = "/var/log/ndnn/access.log";
 
+    // Escape forward slashes for awk regex context
+    const awkPattern = pathFilter.replace(/\//g, "\\/");
+
     // Build awk args to count lines matching the path filter
-    const awkArgs = `'/${pathFilter}/ {count++} END{print count+0}' ${logFile}`;
+    const awkArgs = `'/${awkPattern}/ {count++} END{print count+0}' ${logFile}`;
 
     const widget = new MetricsWidget({ probe: "awk", args: awkArgs });
     const html = widget.render({});
