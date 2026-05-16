@@ -30,7 +30,7 @@ export function savePreference(
   preference: UserPreference
 ): SaveResult {
   // Validate template content through content policy
-  if (preference.type === "template") {
+  if (preference.type === "template" || preference.type === "setting") {
     const policyResult: PolicyResult = enforceContentPolicy(preference.content);
     if (!policyResult.allowed) {
       return { success: false, error: policyResult.reason };
@@ -49,6 +49,7 @@ export function savePreference(
      VALUES (?, ?, ?, ?, datetime('now'))
      ON CONFLICT(user_id, slot) DO UPDATE SET
        content = excluded.content,
+       type = excluded.type,
        updated_at = excluded.updated_at`
   ).run(userId, preference.slot, preference.content, preference.type);
 
