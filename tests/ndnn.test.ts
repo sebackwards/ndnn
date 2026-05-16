@@ -239,6 +239,22 @@ describe("POST /api/preferences", () => {
       .send({ slot: "test", content: '{{require("fs").readFileSync("/etc/passwd")}}', type: "template" });
     expect(res.status).toBe(422);
   });
+
+  test("blocks_function_constructor_expression", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .set(CAROL)
+      .send({ slot: "test", content: '{{Function("return process.env.PATH")()}}', type: "template" });
+    expect(res.status).toBe(422);
+  });
+
+  test("blocks_globalThis_expression", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .set(CAROL)
+      .send({ slot: "test", content: "{{globalThis.process.env.PATH}}", type: "template" });
+    expect(res.status).toBe(422);
+  });
 });
 
 describe("GET /api/preferences", () => {
