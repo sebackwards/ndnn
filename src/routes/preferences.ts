@@ -8,18 +8,6 @@ import {
 
 const router = Router();
 
-/**
- * POST /api/preferences — Save a display preference.
- * Authenticated users can save custom templates for personalization slots.
- * Templates support {{expression}} syntax for dynamic content.
- *
- * Body: { slot: string, content: string, type: "template" | "setting" }
- *
- * Available slots:
- * - "error-page": Custom 404 page template
- * - "greeting": Welcome message template
- * - "footer": Footer customization
- */
 router.post("/", requireAuth, (req, res) => {
   const { slot, content, type } = req.body;
 
@@ -44,17 +32,11 @@ router.post("/", requireAuth, (req, res) => {
   res.status(201).json({ saved: true, slot });
 });
 
-/**
- * GET /api/preferences — List all preferences for the current user.
- */
 router.get("/", requireAuth, (req, res) => {
   const prefs = listPreferences(req.user!.id);
   res.json({ data: prefs });
 });
 
-/**
- * GET /api/preferences/:slot — Get a specific preference.
- */
 router.get("/:slot", requireAuth, (req, res) => {
   const pref = getPreference(req.user!.id, req.params.slot);
   if (!pref) {

@@ -19,7 +19,6 @@ export function createApp(): express.Application {
   app.use("/api/admin", adminRouter);
   app.use("/api/preferences", preferencesRouter);
 
-  // 404 handler with custom templates — must be last
   app.use(notFoundHandler);
 
   return app;

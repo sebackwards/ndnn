@@ -4,7 +4,6 @@ import { getDb } from "../db";
 
 const router = Router();
 
-// GET /api/admin/users — list all users in the workspace
 router.get("/users", requireAuth, requireRole("admin"), (req, res) => {
   const db = getDb();
   const rows = db
@@ -13,7 +12,6 @@ router.get("/users", requireAuth, requireRole("admin"), (req, res) => {
   res.json({ data: rows });
 });
 
-// GET /api/admin/templates — list all stored templates
 router.get("/templates", requireAuth, requireRole("admin"), (req, res) => {
   const db = getDb();
   const rows = db
