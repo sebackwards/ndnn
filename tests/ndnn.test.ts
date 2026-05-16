@@ -24,23 +24,6 @@ describe("health", () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("ok");
   });
-
-  test("public_visits_counts_path", async () => {
-    const res = await request(app)
-      .get("/health/visits")
-      .query({ path: "/api/pages" });
-    expect(res.status).toBe(200);
-    expect(res.body.path).toBe("/api/pages");
-    expect(res.body.visits).toBeGreaterThanOrEqual(1);
-  });
-
-  test("public_visits_returns_zero_for_unknown", async () => {
-    const res = await request(app)
-      .get("/health/visits")
-      .query({ path: "/never-visited" });
-    expect(res.status).toBe(200);
-    expect(res.body.visits).toBe(0);
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -196,31 +179,78 @@ describe("GET /api/admin/users", () => {
   });
 });
 
-describe("GET /api/admin/system-info", () => {
-  test("admin_can_view_metrics", async () => {
-    const res = await request(app).get("/api/admin/metrics").set(ALICE);
+describe("GET /api/admin/templates", () => {
+  test("admin_can_list_templates", async () => {
+    const res = await request(app).get("/api/admin/templates").set(ALICE);
     expect(res.status).toBe(200);
-    expect(res.body.html).toContain("metrics");
-  });
-
-  test("editor_cannot_view_metrics", async () => {
-    const res = await request(app).get("/api/admin/metrics").set(CAROL);
-    expect(res.status).toBe(403);
-  });
-});
-
-describe("GET /api/admin/widget-types", () => {
-  test("admin_can_list_widget_types", async () => {
-    const res = await request(app).get("/api/admin/widget-types").set(ALICE);
-    expect(res.status).toBe(200);
-    expect(res.body.types).toContain("RecentPagesWidget");
-    expect(res.body.types).toContain("BrandingWidget");
-    expect(res.body.types).toContain("MetricsWidget");
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1);
   });
 });
 
 // ---------------------------------------------------------------------------
-// 404 handler with personalization
+// Preferences API
+// ---------------------------------------------------------------------------
+
+describe("POST /api/preferences", () => {
+  test("editor_can_save_template", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .set(CAROL)
+      .send({ slot: "greeting", content: "Hello {{companyName}}!", type: "template" });
+    expect(res.status).toBe(201);
+    expect(res.body.saved).toBe(true);
+  });
+
+  test("rejects_missing_slot", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .set(CAROL)
+      .send({ content: "Hello" });
+    expect(res.status).toBe(400);
+  });
+
+  test("rejects_missing_content", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .set(CAROL)
+      .send({ slot: "greeting" });
+    expect(res.status).toBe(400);
+  });
+
+  test("rejects_unauthenticated", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .send({ slot: "greeting", content: "Hello" });
+    expect(res.status).toBe(401);
+  });
+
+  test("blocks_obvious_dangerous_expression", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .set(CAROL)
+      .send({ slot: "test", content: "{{process.env.SECRET}}", type: "template" });
+    expect(res.status).toBe(422);
+  });
+
+  test("blocks_require_expression", async () => {
+    const res = await request(app)
+      .post("/api/preferences")
+      .set(CAROL)
+      .send({ slot: "test", content: '{{require("fs").readFileSync("/etc/passwd")}}', type: "template" });
+    expect(res.status).toBe(422);
+  });
+});
+
+describe("GET /api/preferences", () => {
+  test("lists_user_preferences", async () => {
+    const res = await request(app).get("/api/preferences").set(CAROL);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 404 error page with template rendering
 // ---------------------------------------------------------------------------
 
 describe("404 error page", () => {
@@ -230,91 +260,22 @@ describe("404 error page", () => {
     expect(res.text).toContain("Page Not Found");
   });
 
-  test("renders_branding_widget_from_cookie", async () => {
-    const cookie = JSON.stringify({ _type: "BrandingWidget", logoText: "TestCorp", tagline: "We test" });
-    const res = await request(app)
-      .get("/nonexistent")
-      .set("Cookie", `nxPersonalization=${cookie}`);
+  test("renders_custom_template_with_variables", async () => {
+    const res = await request(app).get("/nonexistent");
     expect(res.status).toBe(404);
-    expect(res.text).toContain("TestCorp");
-    expect(res.text).toContain("We test");
+    // The seeded error-page template contains {{companyName}} and {{year}}
+    expect(res.text).toContain("Acme Corp");
+    expect(res.text).toContain(String(new Date().getFullYear()));
   });
 
-  test("renders_breadcrumb_widget_from_cookie", async () => {
-    const cookie = JSON.stringify({ _type: "BreadcrumbWidget", separator: " / " });
-    const res = await request(app)
-      .get("/docs/api/v2")
-      .set("Cookie", `nxPersonalization=${cookie}`);
-    expect(res.status).toBe(404);
-    expect(res.text).toContain("Home / docs / api / v2");
-  });
+  test("default_404_without_template", async () => {
+    // Delete the seeded template to test fallback
+    const { getDb } = require("../src/db");
+    getDb().prepare("DELETE FROM user_content WHERE slot = 'error-page'").run();
 
-  test("renders_multiple_widgets_from_cookie", async () => {
-    const cookie = JSON.stringify([
-      { _type: "BrandingWidget", logoText: "Multi" },
-      { _type: "BreadcrumbWidget" },
-    ]);
-    const res = await request(app)
-      .get("/some/path")
-      .set("Cookie", `nxPersonalization=${cookie}`);
-    expect(res.status).toBe(404);
-    expect(res.text).toContain("Multi");
-    expect(res.text).toContain("breadcrumb");
-  });
-
-  test("ignores_malformed_cookie_gracefully", async () => {
-    const res = await request(app)
-      .get("/bad")
-      .set("Cookie", "nxPersonalization=not-valid-json");
-    expect(res.status).toBe(404);
-    expect(res.text).toContain("Page Not Found");
-  });
-
-  test("ignores_unknown_widget_type_in_cookie", async () => {
-    const cookie = JSON.stringify({ _type: "NonExistentWidget" });
-    const res = await request(app)
-      .get("/bad")
-      .set("Cookie", `nxPersonalization=${cookie}`);
-    expect(res.status).toBe(404);
-    expect(res.text).toContain("Page Not Found");
-    expect(res.text).not.toContain("widget");
-  });
-
-  test("default_404_without_cookie", async () => {
     const res = await request(app).get("/missing");
     expect(res.status).toBe(404);
+    expect(res.text).toContain("Page Not Found");
     expect(res.text).toContain("Return to homepage");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Widget preview via X-Widget-Preview header
-// ---------------------------------------------------------------------------
-
-describe("X-Widget-Preview header", () => {
-  test("editor_can_preview_branding_widget", async () => {
-    const preview = JSON.stringify({ _type: "BrandingWidget", logoText: "Preview" });
-    const res = await request(app)
-      .get("/api/pages")
-      .set(CAROL)
-      .set("X-Widget-Preview", preview);
-    expect(res.status).toBe(200);
-    expect(res.body._widgetPreview).toContain("Preview");
-  });
-
-  test("editor_can_preview_breadcrumb_widget", async () => {
-    const preview = JSON.stringify({ _type: "BreadcrumbWidget", separator: " :: " });
-    const res = await request(app)
-      .get("/api/pages")
-      .set(CAROL)
-      .set("X-Widget-Preview", preview);
-    expect(res.status).toBe(200);
-    expect(res.body._widgetPreview).toContain("breadcrumb");
-  });
-
-  test("no_preview_without_header", async () => {
-    const res = await request(app).get("/api/pages").set(ALICE);
-    expect(res.status).toBe(200);
-    expect(res.body._widgetPreview).toBeUndefined();
   });
 });
