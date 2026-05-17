@@ -3,6 +3,8 @@ import cookieParser from "cookie-parser";
 import pagesRouter from "./routes/pages";
 import adminRouter from "./routes/admin";
 import preferencesRouter from "./routes/preferences";
+import layoutsRouter from "./routes/layouts";
+import exportsRouter from "./routes/exports";
 import { notFoundHandler } from "./middleware/error-handler";
 
 export function createApp(): express.Application {
@@ -16,9 +18,12 @@ export function createApp(): express.Application {
   });
 
   app.use("/api/pages", pagesRouter);
+  app.use("/api/pages", exportsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/preferences", preferencesRouter);
+  app.use("/api/layouts", layoutsRouter);
 
+  // 404 handler — uses safe context only (no data helpers)
   app.use(notFoundHandler);
 
   return app;

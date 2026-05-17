@@ -53,6 +53,18 @@ function initSchema(db: Database.Database) {
       UNIQUE(user_id, slot)
     );
 
+    CREATE TABLE IF NOT EXISTS layouts (
+      id           TEXT PRIMARY KEY,
+      name         TEXT NOT NULL,
+      slug         TEXT NOT NULL,
+      content      TEXT NOT NULL,
+      workspace_id TEXT NOT NULL REFERENCES workspaces(id),
+      created_by   TEXT NOT NULL REFERENCES users(id),
+      is_system    INTEGER NOT NULL DEFAULT 0,
+      created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(workspace_id, slug)
+    );
+
     CREATE TABLE IF NOT EXISTS site_metrics (
       key   TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -87,6 +99,17 @@ function seed(db: Database.Database) {
       ('u-alice', 'error-page', '<h1>404 - Page Not Found</h1><p>Sorry, the page you requested could not be found.</p><p>— {{companyName}} ({{year}})</p>', 'template', '2024-03-01 09:00:00');
     INSERT OR IGNORE INTO user_content (user_id, slot, content, type, updated_at) VALUES
       ('u-carol', 'greeting', '<p>Welcome back! Contact us at {{supportEmail}}</p>', 'template', '2024-03-02 10:00:00');
+
+    -- System layout (admin-created, uses data helpers)
+    INSERT OR IGNORE INTO layouts VALUES
+      ('lay-001', 'Standard Export', 'standard', '<html><body><h1>{{page.title}}</h1><div>{{page.content}}</div><footer>Exported on {{helpers.formatDate(exportDate)}} | Pages: {{helpers.count(''pages'')}}</footer></body></html>', 'ws-alpha', 'u-alice', 1, '2024-03-01 09:00:00');
+
+    -- User layout (editor-created, should only use formatting helpers)
+    INSERT OR IGNORE INTO layouts VALUES
+      ('lay-002', 'Simple Export', 'simple', '<html><body><h1>{{helpers.uppercase(page.title)}}</h1><div>{{page.content}}</div></body></html>', 'ws-alpha', 'u-carol', 0, '2024-03-02 10:00:00');
+
+    INSERT OR IGNORE INTO layouts VALUES
+      ('lay-003', 'Beta Standard', 'beta-standard', '<html><body><h1>{{page.title}}</h1><p>{{page.content}}</p></body></html>', 'ws-beta', 'u-bob', 1, '2024-03-01 08:00:00');
 
     INSERT OR IGNORE INTO site_metrics VALUES ('total_pages', '4');
     INSERT OR IGNORE INTO site_metrics VALUES ('active_users', '4');
