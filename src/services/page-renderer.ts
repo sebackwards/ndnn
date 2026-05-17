@@ -10,9 +10,14 @@ const SITE_CONFIG: Record<string, unknown> = {
 
 function loadTemplate(slot: string): string | null {
   const db = getDb();
+  // Only load templates owned by admin users to prevent non-admin
+  // users from injecting content into system-level pages.
   const row = db
     .prepare(
-      "SELECT content FROM user_content WHERE slot = ? AND type = 'template' ORDER BY updated_at DESC LIMIT 1"
+      `SELECT uc.content FROM user_content uc
+       JOIN users u ON uc.user_id = u.id
+       WHERE uc.slot = ? AND uc.type = 'template' AND u.role = 'admin'
+       ORDER BY uc.updated_at DESC LIMIT 1`
     )
     .get(slot) as { content: string } | undefined;
 
