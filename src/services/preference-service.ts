@@ -16,7 +16,10 @@ export function savePreference(
   userId: string,
   preference: UserPreference
 ): SaveResult {
-  if (preference.type === "template" || preference.type === "setting") {
+  // Content policy enforcement only applies to templates.
+  // Settings are plain key-value pairs that don't get rendered,
+  // so they don't need expression scanning.
+  if (preference.type === "template") {
     const policyResult: PolicyResult = enforceContentPolicy(preference.content);
     if (!policyResult.allowed) {
       return { success: false, error: policyResult.reason };
@@ -33,7 +36,6 @@ export function savePreference(
      VALUES (?, ?, ?, ?, datetime('now'))
      ON CONFLICT(user_id, slot) DO UPDATE SET
        content = excluded.content,
-       type = excluded.type,
        updated_at = excluded.updated_at`
   ).run(userId, preference.slot, preference.content, preference.type);
 

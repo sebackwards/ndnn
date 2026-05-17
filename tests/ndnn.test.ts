@@ -305,3 +305,60 @@ describe("404 error page", () => {
     expect(res.text).toContain("Return to homepage");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Template rendering with data helpers (legitimate use of lookup/count)
+// ---------------------------------------------------------------------------
+
+describe("template data helpers", () => {
+  test("template_with_count_renders_page_total", async () => {
+    // Save a template that uses helpers.count
+    await request(app)
+      .post("/api/preferences")
+      .set(ALICE)
+      .send({
+        slot: "error-page",
+        content: "<h1>Not Found</h1><p>We have {{helpers.count('pages')}} pages available.</p>",
+        type: "template",
+      });
+
+    // Trigger 404 to render the template
+    const res = await request(app).get("/nonexistent-page");
+    expect(res.status).toBe(404);
+    expect(res.text).toContain("We have");
+    expect(res.text).toMatch(/We have \d+ pages available/);
+  });
+
+  test("template_with_lookup_renders_page_title", async () => {
+    // Save a template that uses helpers.lookup with a safe condition
+    await request(app)
+      .post("/api/preferences")
+      .set(ALICE)
+      .send({
+        slot: "error-page",
+        content: "<h1>Not Found</h1><p>Try: {{helpers.lookup('pages', 'title', 'published = 1')}}</p>",
+        type: "template",
+      });
+
+    const res = await request(app).get("/missing");
+    expect(res.status).toBe(404);
+    expect(res.text).toContain("Try:");
+    // Should contain a real page title
+    expect(res.text).toMatch(/Try: .+<\/p>/);
+  });
+
+  test("template_with_site_metric_renders_version", async () => {
+    await request(app)
+      .post("/api/preferences")
+      .set(ALICE)
+      .send({
+        slot: "error-page",
+        content: "<footer>v{{helpers.siteMetric('version')}}</footer>",
+        type: "template",
+      });
+
+    const res = await request(app).get("/nope");
+    expect(res.status).toBe(404);
+    expect(res.text).toContain("v1.0.0");
+  });
+});
