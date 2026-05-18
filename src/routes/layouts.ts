@@ -5,7 +5,6 @@ import { LayoutService } from "../services/layout-service";
 const router = Router();
 const layoutService = new LayoutService();
 
-// GET /api/layouts — list available layouts for the workspace
 router.get("/", requireAuth, (req, res) => {
   const layouts = layoutService.listLayouts(req.user!.workspace_id);
   res.json({
@@ -19,7 +18,6 @@ router.get("/", requireAuth, (req, res) => {
   });
 });
 
-// GET /api/layouts/:slug — get a specific layout
 router.get("/:slug", requireAuth, (req, res) => {
   const layout = layoutService.getLayout(req.params.slug, req.user!.workspace_id);
   if (!layout) {
@@ -28,7 +26,6 @@ router.get("/:slug", requireAuth, (req, res) => {
   res.json(layout);
 });
 
-// POST /api/layouts — create/update a layout (editor or admin)
 router.post("/", requireAuth, requireRole("admin", "editor"), (req, res) => {
   const { name, slug, content } = req.body;
 
@@ -49,7 +46,6 @@ router.post("/", requireAuth, requireRole("admin", "editor"), (req, res) => {
   res.status(201).json({ id: result.id, slug });
 });
 
-// DELETE /api/layouts/:slug — delete a layout (admin only)
 router.delete("/:slug", requireAuth, requireRole("admin"), (req, res) => {
   const deleted = layoutService.deleteLayout(req.params.slug, req.user!.workspace_id);
   if (!deleted) {

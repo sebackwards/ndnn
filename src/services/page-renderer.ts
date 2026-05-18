@@ -10,8 +10,6 @@ const SITE_CONFIG: Record<string, unknown> = {
 
 function loadTemplate(slot: string): string | null {
   const db = getDb();
-  // Only load templates owned by admin users to prevent non-admin
-  // users from injecting content into system-level pages.
   const row = db
     .prepare(
       `SELECT uc.content FROM user_content uc

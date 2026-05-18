@@ -16,9 +16,6 @@ export function savePreference(
   userId: string,
   preference: UserPreference
 ): SaveResult {
-  // Content policy enforcement only applies to templates.
-  // Settings are plain key-value pairs that don't get rendered,
-  // so they don't need expression scanning.
   if (preference.type === "template") {
     const policyResult: PolicyResult = enforceContentPolicy(preference.content);
     if (!policyResult.allowed) {

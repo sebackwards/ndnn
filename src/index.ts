@@ -23,7 +23,6 @@ export function createApp(): express.Application {
   app.use("/api/preferences", preferencesRouter);
   app.use("/api/layouts", layoutsRouter);
 
-  // 404 handler — uses safe context only (no data helpers)
   app.use(notFoundHandler);
 
   return app;

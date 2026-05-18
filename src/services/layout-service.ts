@@ -18,15 +18,7 @@ export interface LayoutSaveResult {
   error?: string;
 }
 
-/**
- * Manages layout templates for document export.
- * Layouts define how pages are rendered when exported.
- */
 export class LayoutService {
-  /**
-   * Lists all layouts available to a workspace.
-   * Includes both workspace-specific and system layouts.
-   */
   listLayouts(workspaceId: string): Layout[] {
     const db = getDb();
     return db
@@ -39,9 +31,6 @@ export class LayoutService {
       .all(workspaceId) as Layout[];
   }
 
-  /**
-   * Gets a layout by slug, scoped to the workspace.
-   */
   getLayout(slug: string, workspaceId: string): Layout | null {
     const db = getDb();
     const row = db
@@ -56,10 +45,6 @@ export class LayoutService {
     return row || null;
   }
 
-  /**
-   * Creates or updates a layout template.
-   * Content is validated through the content policy before saving.
-   */
   saveLayout(
     userId: string,
     workspaceId: string,
@@ -85,9 +70,6 @@ export class LayoutService {
     return { success: true, id };
   }
 
-  /**
-   * Deletes a layout by slug. Only non-system layouts can be deleted.
-   */
   deleteLayout(slug: string, workspaceId: string): boolean {
     const db = getDb();
     const result = db

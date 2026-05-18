@@ -100,7 +100,7 @@ function seed(db: Database.Database) {
     INSERT OR IGNORE INTO user_content (user_id, slot, content, type, updated_at) VALUES
       ('u-carol', 'greeting', '<p>Welcome back! Contact us at {{supportEmail}}</p>', 'template', '2024-03-02 10:00:00');
 
-    -- System layout (admin-created, uses data helpers)
+    -- System layout (admin-created, uses data helpers with parameterized queries)
     INSERT OR IGNORE INTO layouts VALUES
       ('lay-001', 'Standard Export', 'standard', '<html><body><h1>{{page.title}}</h1><div>{{page.content}}</div><footer>Exported on {{helpers.formatDate(exportDate)}} | Pages: {{helpers.count(''pages'')}}</footer></body></html>', 'ws-alpha', 'u-alice', 1, '2024-03-01 09:00:00');
 

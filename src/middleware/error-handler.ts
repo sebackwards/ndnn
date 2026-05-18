@@ -3,15 +3,8 @@ import { getDb } from "../db";
 import { compileTemplate } from "../services/template-compiler";
 import { buildUserContext } from "../services/sandbox-config";
 
-/**
- * Custom 404 handler that renders a branded error page.
- * Uses the USER context (formatting only, no data helpers)
- * to prevent any template injection from accessing the database.
- */
 export function notFoundHandler(req: Request, res: Response): void {
   const db = getDb();
-
-  // Load the error page template from admin-owned content only
   const row = db
     .prepare(
       `SELECT uc.content FROM user_content uc
@@ -24,7 +17,6 @@ export function notFoundHandler(req: Request, res: Response): void {
   let body = "<h1>404 - Page Not Found</h1><p>The page you requested could not be found.</p>";
 
   if (row?.content) {
-    // Render with safe context only (no data access helpers)
     const context = buildUserContext({
       siteName: "ndnn",
       companyName: "Acme Corp",
@@ -37,7 +29,6 @@ export function notFoundHandler(req: Request, res: Response): void {
     try {
       body = compileTemplate(row.content, context);
     } catch {
-      // Fall back to default on render error
     }
   }
 

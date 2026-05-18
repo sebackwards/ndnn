@@ -5,7 +5,6 @@ import { ExportRenderer } from "../services/export-renderer";
 const router = Router();
 const exportRenderer = new ExportRenderer();
 
-// POST /api/pages/:id/export — export a page using a layout template
 router.post("/:id/export", requireAuth, (req, res) => {
   const { layout } = req.body;
 

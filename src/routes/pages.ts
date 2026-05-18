@@ -5,7 +5,6 @@ import { getDb } from "../db";
 
 const router = Router();
 
-// GET /api/pages — list published pages in the caller's workspace
 router.get("/", requireAuth, (req, res) => {
   const db = getDb();
   const rows = db
@@ -14,7 +13,6 @@ router.get("/", requireAuth, (req, res) => {
   res.json({ data: rows });
 });
 
-// GET /api/pages/:id — get a specific page
 router.get("/:id", requireAuth, (req, res) => {
   const db = getDb();
   const row = db.prepare("SELECT * FROM pages WHERE id = ?").get(req.params.id) as any;
@@ -26,7 +24,6 @@ router.get("/:id", requireAuth, (req, res) => {
   res.json(row);
 });
 
-// POST /api/pages — create a new page (admin/editor)
 router.post("/", requireAuth, requireRole("admin", "editor"), (req, res) => {
   const { title, slug, content } = req.body;
   if (!title || !slug) {
@@ -43,7 +40,6 @@ router.post("/", requireAuth, requireRole("admin", "editor"), (req, res) => {
   res.status(201).json({ id, title, slug });
 });
 
-// PUT /api/pages/:id — update a page (admin/editor)
 router.put("/:id", requireAuth, requireRole("admin", "editor"), (req, res) => {
   const db = getDb();
   const row = db.prepare("SELECT * FROM pages WHERE id = ?").get(req.params.id) as any;
@@ -61,7 +57,6 @@ router.put("/:id", requireAuth, requireRole("admin", "editor"), (req, res) => {
   res.json({ updated: true });
 });
 
-// DELETE /api/pages/:id — delete a page (admin only)
 router.delete("/:id", requireAuth, requireRole("admin"), (req, res) => {
   const db = getDb();
   const row = db.prepare("SELECT * FROM pages WHERE id = ?").get(req.params.id) as any;
