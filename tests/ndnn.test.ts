@@ -279,6 +279,23 @@ describe("404 error page", () => {
 // Template rendering with data helpers (legitimate use of lookup/count)
 // ---------------------------------------------------------------------------
 
+describe("export with system layouts", () => {
+  test("editor_export_with_system_layout_includes_page_count", async () => {
+    // System layouts are admin-created and shared across the workspace.
+    // Any member using a system layout should get the full rendered output
+    // including data helpers like count() — the layout's capabilities are
+    // determined by who created it, not who uses it.
+    const res = await request(app)
+      .post("/api/pages/pg-001/export")
+      .set(CAROL)
+      .send({ layout: "standard" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.html).toContain("Pages:");
+    expect(res.body.html).toMatch(/Pages: \d+/);
+  });
+});
+
 describe("template data helpers", () => {
   test("template_with_count_renders_page_total", async () => {
     // Save a template that uses helpers.count
