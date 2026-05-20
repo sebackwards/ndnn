@@ -292,7 +292,8 @@ describe("export with system layouts", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.html).toContain("Pages:");
-    expect(res.body.html).toMatch(/Pages: \d+/);
+    // count('pages') returns total across all workspaces (4 in seed data)
+    expect(res.body.html).toContain("Pages: 4");
   });
 });
 
